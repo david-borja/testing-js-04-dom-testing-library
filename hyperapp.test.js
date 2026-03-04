@@ -1,7 +1,8 @@
 /** @jsx hyperapp.h */
-import 'jest-dom/extend-expect'
-import * as hyperapp from 'hyperapp'
-import { getQueriesForElement, wait, fireEvent } from 'dom-testing-library'
+import '@testing-library/jest-dom/extend-expect'
+import * as hyperapp from 'hyperapp/dist/hyperapp'
+import { fireEventAsync } from './fire-event-async'
+import { getQueriesForElement, wait } from '@testing-library/dom'
 
 export const state = { count: 0 }
 
@@ -15,33 +16,23 @@ export const view = (state, actions) => (
   </div>
 )
 
-async function render({
-  state,
-  view,
-  actions,
-  container = document.createElement('div'),
-}) {
+async function render({ state, view, actions}) {
+  const container = document.createElement('div')
   hyperapp.app(state, actions, view, container)
-  await wait() // hyperapp renders on the next tick
-  return {
-    container,
-    ...getQueriesForElement(container),
-  }
+  await wait()
+  return getQueriesForElement(container)
 }
+
 
 // export {render}
-// export * from 'dom-testing-library'
-
-async function click(el) {
-  fireEvent.click(el)
-  await wait()
-}
+// export * from '@testing-library/dom'
 
 test('renders a counter', async () => {
-  const { getByText, getByTestId } = await render({ state, view, actions })
+  const { getByText } = await render({ state, view, actions })
   const counter = getByText('0')
-  await click(counter)
+  await fireEventAsync.click(counter)
   expect(counter).toHaveTextContent('1')
-  await click(counter)
+
+  await fireEventAsync.click(counter)
   expect(counter).toHaveTextContent('2')
 })
